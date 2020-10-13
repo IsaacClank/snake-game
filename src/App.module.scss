@@ -1,0 +1,29 @@
+$size: 500px;
+$step: 10px;
+
+#Wrapper {
+	display: flex;
+	justify-content: center;
+}
+
+#Stage {
+	margin-top: 3em;
+	padding: 0px;
+	width: $size;
+	height: $size;
+	position: absolute;
+	border: 1px solid black;
+
+	.seg {
+		width: $step;
+		height: $step;
+		background-color: green;
+		display: inline-block;
+		position: absolute;
+	}
+
+	.fruit {
+		@extend .seg;
+		background-color: red;
+	}
+}
