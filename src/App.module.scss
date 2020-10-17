@@ -1,12 +1,23 @@
-$size: 500px;
-$step: 10px;
+$size: 600px;
+$step: 20px;
 
 #Wrapper {
 	display: flex;
 	justify-content: center;
 }
 
-#Stage {
+#Menu {
+	display: flex;
+	flex-wrap: wrap;
+	margin-top: 3em;
+	& > div {
+		display: flex;
+		justify-content: center;
+		flex-basis: 100%;
+	}
+}
+
+#GameScreen {
 	margin-top: 3em;
 	padding: 0px;
 	width: $size;
