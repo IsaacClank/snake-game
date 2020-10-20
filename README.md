@@ -13,7 +13,7 @@
 ## Installation
   
   1. Clone this repo to a local folder.
-  2. Open chosen terminal (Powershell, cmd on Windows or Any Terminal in linux).
+  2. Open chosen terminal (cmd on Windows or Any Terminal in linux).
   3. cd into local repo.
   4. run command in terminal:
 
