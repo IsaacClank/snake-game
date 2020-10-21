@@ -9,15 +9,15 @@ $step: 20px;
 body {
   font-family: Arcade;
   font-size: 16px;
-  color: white;
   height: 100vh;
-  background-color: black;
+  margin: 0px;
   overflow: hidden;
 }
 
 #Wrapper {
   display: flex;
   justify-content: center;
+  height: 100vh;
 }
 
 #Menu {
@@ -59,6 +59,31 @@ body {
   #Score {
     margin-top: 15em;
     text-align: center;
-    color: yellow;
+  }
+}
+
+#Settings {
+  position: absolute;
+  right: 30em;
+  top: 10em;
+  font-size: 0.75rem;
+
+  div {
+    margin-bottom: 2em;
+    margin-top: 2em;
+
+    input {
+      font-family: inherit;
+      font-size: inherit;
+    }
+    input[type="text"] {
+      margin-top: 2em;
+      padding-left: 1em;
+      height: 4em;
+      width: 8em;
+    }
+    input[type="range"] {
+      margin-top: 2em;
+    }
   }
 }
