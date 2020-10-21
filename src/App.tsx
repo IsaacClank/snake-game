@@ -1,6 +1,9 @@
 import React from "react";
 import style from "./App.module.scss";
 
+const DIFFICULTY = 2;
+const SNAKE_COLOR = "yellow";
+
 // -------------------------------CONTEXT & TYPES-------------------------------
 //
 
@@ -9,6 +12,7 @@ const GameSettings = React.createContext({
     SEG_LENGTH: 10,
     SPEED: 3,
     STEPS: 50,
+    color: "green",
   },
   increaseSpeed: () => {},
   resetSpeed: () => {},
@@ -45,11 +49,11 @@ const App = () => {
   const [settings, setSettings] = React.useState({
     SEG_LENGTH: 20,
     STEPS: 30,
-    SPEED: 2, // Change this to raise difficulty
+    SPEED: DIFFICULTY, // Change this to raise difficulty
+    color: SNAKE_COLOR,
   });
-  const increaseSpeed = () => setSettings(s => ({ ...s, SPEED: s.SPEED + 0.1 }));
-  const resetSpeed = () => setSettings(s => ({ ...s, SPEED: 2 }));
-  // console.clear();
+  const increaseSpeed = () => setSettings(s => ({ ...s, SPEED: s.SPEED + DIFFICULTY / 25 }));
+  const resetSpeed = () => setSettings(s => ({ ...s, SPEED: DIFFICULTY }));
 
   return (
     <GameSettings.Provider
@@ -60,11 +64,8 @@ const App = () => {
       }}
     >
       <div id={style.Wrapper}>
-        {gameState === GameState.Running ? (
-          <GameScreen gameState={gameState} updateGameState={updateGameState} />
-        ) : (
-          <MainScreen updateGameState={updateGameState} gameState={gameState} />
-        )}
+        <GameScreen gameState={gameState} updateGameState={updateGameState} />
+        <MainScreen updateGameState={updateGameState} gameState={gameState} />
       </div>
     </GameSettings.Provider>
   );
@@ -79,16 +80,23 @@ const MainScreen = (props: {
   updateGameState: React.Dispatch<React.SetStateAction<GameState>>;
   gameState: GameState;
 }) => {
+  const startGame = React.useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === " ") {
+        props.updateGameState(GameState.Running);
+        document.removeEventListener("keydown", startGame);
+      }
+    },
+    [props]
+  );
+
+  React.useEffect(() => {
+    if (props.gameState !== GameState.Running) document.addEventListener("keydown", e => startGame(e));
+  }, [props.gameState, startGame]);
+
   return (
     <div id={style.Menu}>
-      {props.gameState === GameState.Over && (
-        <div>
-          <h1>GAME OVER</h1>
-        </div>
-      )}
-      <div>
-        <button onClick={() => props.updateGameState(GameState.Running)}>Start</button>
-      </div>
+      <div>{props.gameState !== GameState.Running && <p>Press Spacebar to start the game!</p>}</div>
     </div>
   );
 };
@@ -102,13 +110,22 @@ const GameScreen = (props: {
   const { settings, increaseSpeed, resetSpeed } = React.useContext(GameSettings);
   const [fruitState, updateFruitState] = React.useState(generateFruit());
   const [snakeState, updateSnake] = React.useReducer(snakeStateReducer, generateSnakeState(settings.STEPS));
+  const [clock, setClock] = React.useState(new Date());
+  const [score, setScore] = React.useState({ growth: 0, time: 0 });
+
+  // Start timer and reset snake state
+  React.useEffect(() => {
+    if (props.gameState === GameState.Running) {
+      setClock(new Date());
+    }
+  }, [props.gameState]);
 
   // Move snake
   React.useEffect(() => {
     if (props.gameState === GameState.Running) {
       const timer = setTimeout(() => {
         updateSnake({ type: "move" });
-      }, 200 / settings.SPEED);
+      }, 150 / settings.SPEED);
       return () => clearTimeout(timer);
     } else return;
   }, [snakeState, props.gameState, settings.SPEED]);
@@ -136,28 +153,44 @@ const GameScreen = (props: {
 
   // Grow snake
   React.useEffect(() => {
-    if (checkEating(snakeState, fruitState)) {
+    if (checkEating(snakeState, fruitState) && props.gameState === GameState.Running) {
       updateSnake({ type: "grow", newHead: fruitState });
       updateFruitState(generateFruit());
       increaseSpeed();
     }
-  }, [fruitState, snakeState, increaseSpeed]);
+  }, [fruitState, snakeState, increaseSpeed, props.gameState]);
 
   // Stop the game
+  // Reset gamet state
   React.useEffect(() => {
     if (
-      crashWall(snakeState, settings.STEPS) ||
-      snakeState.segs.slice(1).some(seg => checkCollision(snakeState.segs[0], seg))
+      (crashWall(snakeState, settings.STEPS) ||
+        snakeState.segs.slice(1).some(seg => checkCollision(snakeState.segs[0], seg))) &&
+      props.gameState === GameState.Running
     ) {
       props.updateGameState(GameState.Over);
       resetSpeed();
+      updateSnake({ type: "reset", newState: generateSnakeState(settings.STEPS) });
+      setScore({
+        growth: snakeState.segs.length - 2,
+        time: (new Date().getTime() - clock.getTime()) / 1000,
+      });
     }
-  }, [snakeState, props, settings.STEPS, resetSpeed]);
+  }, [snakeState, props, settings.STEPS, resetSpeed, clock]);
 
   return (
     <div id={style.GameScreen}>
-      <RenderSnake snake={snakeState.segs} />
-      <RenderFruit fruit={fruitState} />
+      {props.gameState === GameState.Running ? (
+        <div>
+          <RenderSnake snake={snakeState.segs} color={settings.color} />
+          <RenderFruit fruit={fruitState} />
+        </div>
+      ) : (
+        <div id={style.Score}>
+          <p>GROWTH: {score.growth}</p>
+          <p>TIME: {score.time}s</p>
+        </div>
+      )}
     </div>
   );
 };
@@ -165,7 +198,7 @@ const GameScreen = (props: {
 // -------------------------------RENDERER COMPONENT-------------------------------
 //
 
-const RenderSnake = (props: { snake: Array<Point> }) => {
+const RenderSnake = (props: { snake: Array<Point>; color: string }) => {
   const { settings } = React.useContext(GameSettings);
   return (
     <>
@@ -177,6 +210,7 @@ const RenderSnake = (props: { snake: Array<Point> }) => {
             style={{
               top: `${settings.SEG_LENGTH * seg.y}px`,
               left: `${settings.SEG_LENGTH * seg.x}px`,
+              backgroundColor: `${props.color}`,
             }}
           />
         );
@@ -205,9 +239,10 @@ const RenderFruit = (props: { fruit: Point }) => {
 const snakeStateReducer = (
   state: SnakeState,
   action: {
-    type: "grow" | "turn" | "move";
+    type: "grow" | "turn" | "move" | "reset";
     direction?: Direction;
     newHead?: Point;
+    newState?: SnakeState;
   }
 ): SnakeState => {
   switch (action.type) {
@@ -219,6 +254,9 @@ const snakeStateReducer = (
     case "turn":
       if (action.direction && !invalidInput(state.direction, action.direction))
         return { ...state, direction: action.direction };
+      break;
+    case "reset":
+      if (action.newState) return { ...action.newState };
       break;
   }
   return state;

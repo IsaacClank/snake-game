@@ -1,40 +1,64 @@
 $size: 600px;
 $step: 20px;
 
+@font-face {
+  font-family: Arcade;
+  src: url("assets/FFFFORWA.TTF");
+}
+
+body {
+  font-family: Arcade;
+  font-size: 16px;
+  color: white;
+  height: 100vh;
+  background-color: black;
+  overflow: hidden;
+}
+
 #Wrapper {
-	display: flex;
-	justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 #Menu {
-	display: flex;
-	flex-wrap: wrap;
-	margin-top: 3em;
-	& > div {
-		display: flex;
-		justify-content: center;
-		flex-basis: 100%;
-	}
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 1em;
+
+  & > div {
+    display: flex;
+    justify-content: center;
+    flex-basis: 100%;
+  }
+
+  p {
+    font-size: 1.5rem;
+  }
 }
 
 #GameScreen {
-	margin-top: 3em;
-	padding: 0px;
-	width: $size;
-	height: $size;
-	position: absolute;
-	border: 1px solid black;
+  margin-top: 7em;
+  padding: 0px;
+  width: $size;
+  height: $size;
+  position: absolute;
+  border: 3px solid white;
 
-	.seg {
-		width: $step;
-		height: $step;
-		background-color: green;
-		display: inline-block;
-		position: absolute;
-	}
+  .seg {
+    width: $step;
+    height: $step;
+    display: inline-block;
+    position: absolute;
+  }
 
-	.fruit {
-		@extend .seg;
-		background-color: red;
-	}
+  .fruit {
+    @extend .seg;
+    background-color: red;
+  }
+
+  #Score {
+    margin-top: 15em;
+    text-align: center;
+    color: yellow;
+  }
 }
